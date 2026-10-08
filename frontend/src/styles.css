@@ -1,0 +1,275 @@
+body {
+  background: #f5f7fb;
+  color: #203047;
+  font-family: Inter, system-ui, sans-serif;
+}
+h1 {
+  font-size: 1.85rem;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+}
+.btn-primary {
+  --bs-btn-bg: #295cda;
+  --bs-btn-border-color: #295cda;
+}
+.card {
+  border-color: #e3e8f0;
+  border-radius: 12px;
+}
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #73819a;
+  margin-bottom: 0.6rem;
+}
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+.app-sidebar {
+  width: 250px;
+  background: #16263e;
+  color: #fff;
+  padding: 28px 22px;
+  flex-shrink: 0;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  margin-bottom: 42px;
+  font-size: 0.95rem;
+}
+.brand small {
+  font-size: 0.7rem;
+  color: #aebbd0;
+  font-weight: 400;
+}
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: #356ee8;
+  border-radius: 12px;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.app-sidebar nav a {
+  padding: 12px;
+  color: #b9c7dc;
+  text-decoration: none;
+  font-size: 0.9rem;
+  border-radius: 8px;
+}
+.app-sidebar nav a.active {
+  background: #2d4160;
+  color: white;
+}
+.sidebar-note {
+  font-size: 0.75rem;
+  color: #8fa1bd;
+  margin-top: 60px;
+  line-height: 1.7;
+}
+.workspace {
+  flex: 1;
+  min-width: 0;
+}
+.workspace-header {
+  height: 76px;
+  background: white;
+  border-bottom: 1px solid #e3e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 36px;
+  font-size: 0.9rem;
+}
+.workspace-content {
+  max-width: 1180px;
+  padding: 36px;
+  margin: auto;
+}
+.table th {
+  color: #697b94;
+  background: #fafbfd;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 16px;
+}
+.table td {
+  padding: 18px 16px;
+}
+.summary-card {
+  transition: border-color 0.15s;
+  color: inherit;
+}
+.summary-card:hover {
+  border-color: #295cda;
+}
+.login-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 100px;
+  padding: 40px;
+  background: linear-gradient(135deg, #edf2fa, #fafbff);
+}
+.login-intro {
+  max-width: 410px;
+}
+.login-intro h1 {
+  font-size: 3rem;
+  line-height: 1.15;
+}
+.login-intro > p:last-child {
+  color: #65748c;
+  line-height: 1.7;
+}
+.login-card {
+  width: 430px;
+}
+.preserve-lines {
+  white-space: pre-wrap;
+}
+.confirmation-backdrop {
+  position: fixed;
+  inset: 0;
+  background: #13213988;
+  display: grid;
+  place-items: center;
+  z-index: 1050;
+  padding: 24px;
+}
+.confirmation {
+  width: min(100%, 460px);
+}
+@media (max-width: 991px) {
+  .app-shell {
+    display: block;
+  }
+  .app-sidebar {
+    width: 100%;
+    padding: 18px 24px;
+  }
+  .brand {
+    margin-bottom: 16px;
+  }
+  .sidebar-note {
+    display: none;
+  }
+  .workspace-content {
+    padding: 24px;
+  }
+  .workspace-header {
+    padding: 0 24px;
+  }
+  .login-shell {
+    gap: 35px;
+  }
+  .login-intro {
+    max-width: 300px;
+  }
+  .login-intro h1 {
+    font-size: 2.2rem;
+  }
+}
+@media (max-width: 640px) {
+  .login-shell {
+    flex-direction: column;
+    padding: 24px;
+  }
+  .login-intro {
+    max-width: 430px;
+    width: 100%;
+  }
+  .login-intro h1 {
+    font-size: 1.8rem;
+  }
+  .login-card {
+    width: 100%;
+  }
+  .workspace-header > span {
+    display: none;
+  }
+  .workspace-header {
+    justify-content: flex-end;
+  }
+  .workspace-content {
+    padding: 20px;
+  }
+  .table {
+    min-width: 700px;
+  }
+}
+/* Approval steps stack on mobile and form a horizontal stepper on desktop. */
+.approval-progress-list {
+  gap: 1.5rem;
+}
+.approval-progress-step {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
+}
+.approval-progress-marker {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+}
+.approval-progress-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 1rem;
+  top: 2rem;
+  bottom: -1.5rem;
+  border-left: 2px solid var(--bs-border-color);
+}
+@media (min-width: 768px) {
+  .approval-progress-step {
+    flex-direction: column;
+  }
+  .approval-progress-step:not(:last-child)::after {
+    top: 1rem;
+    left: 2rem;
+    right: -1.5rem;
+    bottom: auto;
+    border-left: 0;
+    border-top: 2px solid var(--bs-border-color);
+  }
+}
+
+/* Keep the profile menu readable without overflowing narrow viewports. */
+.profile-dropdown {
+  min-width: 0;
+}
+.profile-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: min(16rem, 60vw);
+}
+.profile-dropdown .dropdown-menu {
+  width: 18rem;
+  max-width: calc(100vw - 2rem);
+}
+.profile-identity {
+  overflow-wrap: anywhere;
+}

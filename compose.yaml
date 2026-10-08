@@ -1,0 +1,76 @@
+name: hpoa-docker
+x-backend: &backend
+  image: hpoa-backend:local
+  build:
+    context: .
+    dockerfile: backend/Dockerfile
+  environment: &backend-env
+    SPRING_PROFILES_ACTIVE: docker
+    DOCKER_DB_PASSWORD: ${DOCKER_DB_PASSWORD:?Set a new container-only database password}
+    DOCKER_COOKIE_SECURE: "false"
+  networks: [application]
+
+services:
+  db:
+    image: mysql:8.0.44
+    environment:
+      MYSQL_DATABASE: hpoa_docker
+      MYSQL_USER: hpoa_docker
+      MYSQL_PASSWORD: ${DOCKER_DB_PASSWORD:?Set a new container-only database password}
+      MYSQL_ROOT_PASSWORD: ${DOCKER_ROOT_PASSWORD:?Set a different container-only root password}
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    volumes: ["mysql-data:/var/lib/mysql"]
+    networks: [application]
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping --host=127.0.0.1 --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  backend:
+    <<: *backend
+    depends_on:
+      db: {condition: service_healthy}
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent --output /dev/null http://127.0.0.1:8080/api/auth/csrf"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    ports: ["127.0.0.1:8081:80"]
+    networks: [application]
+    depends_on:
+      backend: {condition: service_healthy}
+
+  initialize:
+    <<: *backend
+    profiles: [setup]
+    environment:
+      <<: *backend-env
+      SPRING_PROFILES_ACTIVE: docker-init
+    entrypoint: ["java", "-Dloader.main=com.ada.approval.bootstrap.DockerInitialization", "-cp", "/app/app.jar", "org.springframework.boot.loader.launch.PropertiesLauncher"]
+    depends_on:
+      db: {condition: service_healthy}
+
+  demo-seed:
+    <<: *backend
+    profiles: [demo]
+    environment:
+      <<: *backend-env
+      DOCKER_SEED_URL: jdbc:mysql://db:3306/hpoa_docker
+      DOCKER_SEED_USER: hpoa_docker
+      HPOA_DEMO_PASSWORD: ${HPOA_DEMO_PASSWORD:-}
+    entrypoint: ["java", "-cp", "/app/seed:/app/classes:/app/lib/*", "development.DockerDemoSeed", "--seed", "/app/demo-fixture.sql"]
+    depends_on:
+      db: {condition: service_healthy}
+
+networks:
+  application:
+volumes:
+  mysql-data:

@@ -1,0 +1,79 @@
+# Local IDE and OS/editor state
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+
+# Rebuildable outputs and dependencies
+target/
+node_modules/
+/frontend/dist/
+.m2/
+.npm-cache/
+classes/
+*.class
+runtime-classpath.txt
+*-classpath.txt
+
+# Private credentials, evidence and databases; never remove these through cleanup
+.local/
+/.cleanup-local/
+.mysql/
+mysql-data/
+*.sql.dump
+*.dump.sql
+*.sql.gz
+*.sql.zip
+*.dump
+*.dumpstream
+*.log
+*.pid
+seed.generated.sql
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+credentials*.xml
+
+# Temporary legacy-path residues preserved for already-running local processes
+# These contain no active source and must never be published.
+/hpoa/
+/integration/
+
+# Test coverage and temporary caches/outputs
+coverage/
+.nyc_output/
+.vite/
+.cache/
+.tmp/
+tmp/
+temp/
+test-results/
+playwright-report/
+*.tmp
+*.temp
+# Raw database artifacts (versioned .sql migrations/fixtures remain public)
+*.ibd
+*.ibdata
+*.frm
+*.myd
+*.myi
+*.sql.bak
+
+# Minimal public tools; optional helpers remain unchanged locally
+/tools/*
+!/tools/docker/
+!/tools/development/
+/tools/docker/*
+!/tools/docker/DockerDemoSeed.java
+/tools/development/*
+!/tools/development/DevelopmentSeed.java
+!/tools/development/development-fixture.sql

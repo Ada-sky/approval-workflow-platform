@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn2:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn2="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:activiti="http://activiti.org/bpmn" id="sample-diagram" targetNamespace="http://activiti.org/bpmn" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+  <bpmn2:process id="hr_employee_holiday" name="Employee leave workflow" isExecutable="true">
+    <bpmn2:startEvent id="StartEvent_1" name="Start">
+      <bpmn2:outgoing>start</bpmn2:outgoing>
+    </bpmn2:startEvent>
+    <bpmn2:userTask id="Activity_158mas7" name="Submit leave request" activiti:assignee="${user}">
+      <bpmn2:incoming>start</bpmn2:incoming>
+      <bpmn2:outgoing>submit</bpmn2:outgoing>
+    </bpmn2:userTask>
+    <bpmn2:exclusiveGateway id="applicant_route" name="Applicant route">
+      <bpmn2:incoming>submit</bpmn2:incoming>
+      <bpmn2:outgoing>employee</bpmn2:outgoing>
+      <bpmn2:outgoing>management</bpmn2:outgoing>
+      <bpmn2:outgoing>gm</bpmn2:outgoing>
+    </bpmn2:exclusiveGateway>
+    <bpmn2:userTask id="manager_check" name="Department Manager approval" activiti:assignee="${manager}">
+      <bpmn2:incoming>employee</bpmn2:incoming>
+      <bpmn2:outgoing>manager_done</bpmn2:outgoing>
+    </bpmn2:userTask>
+    <bpmn2:exclusiveGateway id="duration_route" name="Duration route">
+      <bpmn2:incoming>manager_done</bpmn2:incoming>
+      <bpmn2:outgoing>long_leave</bpmn2:outgoing>
+      <bpmn2:outgoing>short_leave</bpmn2:outgoing>
+    </bpmn2:exclusiveGateway>
+    <bpmn2:userTask id="boss_check" name="General Manager approval" activiti:assignee="${boss}">
+      <bpmn2:incoming>management</bpmn2:incoming>
+      <bpmn2:incoming>long_leave</bpmn2:incoming>
+      <bpmn2:outgoing>boss_done</bpmn2:outgoing>
+    </bpmn2:userTask>
+    <bpmn2:exclusiveGateway id="final_route" name="Final approval route">
+      <bpmn2:incoming>boss_done</bpmn2:incoming>
+      <bpmn2:outgoing>hr_applicant</bpmn2:outgoing>
+      <bpmn2:outgoing>other_applicant</bpmn2:outgoing>
+    </bpmn2:exclusiveGateway>
+    <bpmn2:userTask id="hr_check" name="HR approval" activiti:candidateUsers="${hrs}">
+      <bpmn2:incoming>gm</bpmn2:incoming>
+      <bpmn2:incoming>short_leave</bpmn2:incoming>
+      <bpmn2:incoming>other_applicant</bpmn2:incoming>
+      <bpmn2:outgoing>hr_done</bpmn2:outgoing>
+    </bpmn2:userTask>
+    <bpmn2:endEvent id="Event_1judlho" name="End">
+      <bpmn2:incoming>hr_applicant</bpmn2:incoming>
+      <bpmn2:incoming>hr_done</bpmn2:incoming>
+    </bpmn2:endEvent>
+    <bpmn2:sequenceFlow id="start" sourceRef="StartEvent_1" targetRef="Activity_158mas7">
+    </bpmn2:sequenceFlow>
+    <bpmn2:sequenceFlow id="submit" sourceRef="Activity_158mas7" targetRef="applicant_route">
+    </bpmn2:sequenceFlow>
+    <bpmn2:sequenceFlow id="employee" sourceRef="applicant_route" targetRef="manager_check">
+      <bpmn2:conditionExpression xsi:type="bpmn2:tFormalExpression">${applicantWorkflowIdentity == 'EMPLOYEE'}</bpmn2:conditionExpression>
+    </bpmn2:sequenceFlow>
+    <bpmn2:sequenceFlow id="management" sourceRef="applicant_route" targetRef="boss_check">
+      <bpmn2:conditionExpression xsi:type="bpmn2:tFormalExpression">${applicantWorkflowIdentity == 'DEPARTMENT_MANAGER' || applicantWorkflowIdentity == 'HR'}</bpmn2:conditionExpression>
+    </bpmn2:sequenceFlow>
+    <bpmn2:sequenceFlow id="gm" sourceRef="applicant_route" targetRef="hr_check">
+      <bpmn2:conditionExpression xsi:type="bpmn2:tFormalExpression">${applicantWorkflowIdentity == 'GENERAL_MANAGER'}</bpmn2:conditionExpression>
+    </bpmn2:sequenceFlow>
+    <bpmn2:sequenceFlow id="manager_done" sourceRef="manager_check" targetRef="duration_route">
+    </bpmn2:sequenceFlow>
+    <bpmn2:sequenceFlow id="long_leave" sourceRef="duration_route" targetRef="boss_check">
+      <bpmn2:conditionExpression xsi:type="bpmn2:tFormalExpression">${day&gt;3}</bpmn2:conditionExpression>
+    </bpmn2:sequenceFlow>
+    <bpmn2:sequenceFlow id="short_leave" sourceRef="duration_route" targetRef="hr_check">
+      <bpmn2:conditionExpression xsi:type="bpmn2:tFormalExpression">${day&lt;=3}</bpmn2:conditionExpression>
+    </bpmn2:sequenceFlow>
+    <bpmn2:sequenceFlow id="boss_done" sourceRef="boss_check" targetRef="final_route">
+    </bpmn2:sequenceFlow>
+    <bpmn2:sequenceFlow id="hr_applicant" sourceRef="final_route" targetRef="Event_1judlho">
+      <bpmn2:conditionExpression xsi:type="bpmn2:tFormalExpression">${applicantWorkflowIdentity == 'HR'}</bpmn2:conditionExpression>
+    </bpmn2:sequenceFlow>
+    <bpmn2:sequenceFlow id="other_applicant" sourceRef="final_route" targetRef="hr_check">
+      <bpmn2:conditionExpression xsi:type="bpmn2:tFormalExpression">${applicantWorkflowIdentity != 'HR'}</bpmn2:conditionExpression>
+    </bpmn2:sequenceFlow>
+    <bpmn2:sequenceFlow id="hr_done" sourceRef="hr_check" targetRef="Event_1judlho">
+    </bpmn2:sequenceFlow>
+  </bpmn2:process>
+</bpmn2:definitions>

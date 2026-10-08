@@ -1,0 +1,34 @@
+# Historical integration profile; its launcher is archived privately. Retain exact-target safety checks.
+# No default password: a missing variable must fail startup.
+server:
+  address: 127.0.0.1
+  port: 8080
+context:
+  initializer:
+    classes: com.ada.approval.bootstrap.IntegrationSafetyInitializer
+spring:
+  datasource:
+    url: 'jdbc:mysql://127.0.0.1:3307/hpoa_integration?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai'
+    username: hpoa_integration
+    password: ${INTEGRATION_DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    initialization-mode: never
+    hikari:
+      pool-name: IntegrationHikariCP
+  jpa:
+    open-in-view: false
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      jakarta.persistence.schema-generation.database.action: none
+  activiti:
+    database-schema-update: 'true'
+    db-history-used: true
+    history-level: full
+    async-executor-activate: false
+    check-process-definitions: true
+    process-definition-location-prefix: classpath:/bpmn/
+    process-definition-location-suffixes:
+      - hr_employee_holiday.bpmn
+    deployment-mode: default

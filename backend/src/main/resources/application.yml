@@ -1,0 +1,63 @@
+server:
+  port: 80
+spring:
+  application:
+    name: hpoa
+  flyway:
+    enabled: false
+    locations: classpath:db/migration/application
+    baseline-on-migrate: false
+    validate-on-migrate: true
+    clean-disabled: true
+  sql:
+    init:
+      mode: never
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      pool-name: DataHikariCP  # Connection pool name
+      minimum-idle: 5    # Minimum idle connections
+      idle-timeout: 180000   # Maximum idle time; default is 600000 ms (10 minutes)
+      maximum-pool-size: 10  # Maximum pool size; default is 10
+      auto-commit: true     # Enable auto-commit for pooled connections
+      max-lifetime: 1800000  # Maximum connection lifetime; 0 means unlimited, default is 1800000 ms (30 minutes)
+      connection-timeout: 30000   # Connection timeout; default is 30000 ms (30 seconds)
+      connection-test-query: select 1    # Connection validation SQL
+  jpa:
+    open-in-view: false
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      jakarta.persistence.schema-generation.database.action: none
+  activiti:
+    ## Engine schema update strategy
+    ## false: validate the existing engine schema version without updates
+    ## true: create or upgrade engine tables when explicitly enabled
+    ## create_drop: create engine tables at startup and drop them on engine shutdown
+    ## drop-create: recreate engine tables at startup
+    database-schema-update: true
+    ##  Enable engine history tables
+    db-history-used: true
+    ## History levels: none, activity, audit, full
+    #none: do not record workflow history
+    #activity: record process instances and activities
+    #audit: also record tasks and their properties
+    #full: retain audit data and all additional workflow details,
+    #       including process variables
+    history-level: full
+    #Automatic process definition discovery and deployment
+    check-process-definitions: false
+    # Activate the asynchronous executor when the engine starts
+    #    true enables asynchronous execution; false disables it
+    async-executor-activate: true
+    # Process definition resource directory
+    #process-definition-location-prefix:classpath:/bpmn/
+    #Process definition file extensions
+    #process-definition-location-suffixes:
+    #  -**.bpmn
+    ## Automatic deployment mode
+    deployment-mode: never-fail
