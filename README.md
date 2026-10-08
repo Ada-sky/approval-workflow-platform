@@ -8,19 +8,19 @@ A full-stack employee leave approval platform built with React, Spring Boot, MyS
 
 ### Dashboard
 
-![Dashboard](Screenshots/Dashboard.png)
+![Dashboard](Screenshots/dashboard.png)
 
 ### Workflow Progress
 
-![Workflow Progress](Screenshots/Workflow Progress.png)
+![Workflow Progress](Screenshots/workflow-progress.png)
 
 ### Approval Workbench
 
-![Approval Workbench](Screenshots/Approval Workbench.png)
+![Approval Workbench](Screenshots/approval-workbench.png)
 
 ### Role & Permission Management
 
-![Role & Permission Management](Screenshots/Role & Permission Management.png)
+![Role & Permission Management](Screenshots/role-permission-management.png)
 
 ---
 
