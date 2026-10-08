@@ -8,7 +8,7 @@ A full-stack employee leave approval platform built with React, Spring Boot, MyS
 
 ### Dashboard
 
-![Dashboard](Screenshots/dashboard.png)
+![dashboard](Screenshots/dashboard.png)
 
 ### Workflow Progress
 
@@ -85,22 +85,22 @@ Leave duration is calculated using **inclusive calendar days**. Requests lasting
 
 ## Engineering Highlights
 
-**1. BPMN Workflow & Conditional Routing**
-Implemented multi-stage approval workflows using Activiti BPMN, with approval routes determined by applicant roles and leave duration.
-**2. Task-Level Authorization**
-Enforced backend authorization for individual approval tasks, preventing unauthorized decisions and self-approval.
-**3. Role-Based Access Control (RBAC)**
-Implemented role-based permissions using Spring Security, enforcing backend authorization for administrative operations and protected application features.
-**4. Transactional Consistency**
-Used Spring transactions and pessimistic row locking to coordinate approval and withdrawal operations and reduce the risk of conflicting state changes.
-**5. Database Schema Management**
-Used Spring Data JPA for application persistence and Flyway for versioned database migrations, while Activiti manages its own workflow tables.
-**6. Audit History & Data Integrity**
-Preserved approval decisions and request history across rejection, withdrawal, and archiving, with ownership and authorization checks protecting historical access.
-**7. Containerized Deployment**
-Containerized the React frontend, Spring Boot backend, and isolated MySQL database using Docker Compose, with nginx serving the frontend and proxying API requests.
-**8. Session Authentication & CSRF Protection**
-Implemented session-based authentication using Spring Security, with BCrypt password hashing and CSRF protection for state-changing requests.
+1. **BPMN Workflow & Conditional Routing**
+   Implemented multi-stage approval workflows using Activiti BPMN, with approval routes determined by applicant roles and leave duration.
+2. **Task-Level Authorization**
+   Enforced backend authorization for individual approval tasks, preventing unauthorized decisions and self-approval.
+3. **Role-Based Access Control (RBAC)**
+   Implemented role-based permissions using Spring Security, enforcing backend authorization for administrative operations and protected application features.
+4. **Transactional Consistency**
+   Used Spring transactions and pessimistic row locking to coordinate approval and withdrawal operations and reduce the risk of conflicting state changes.
+5. **Database Schema Management**
+   Used Spring Data JPA for application persistence and Flyway for versioned database migrations, while Activiti manages its own workflow tables.
+6. **Audit History & Data Integrity**
+   Preserved approval decisions and request history across rejection, withdrawal, and archiving, with ownership and authorization checks protecting historical access.
+7. **Containerized Deployment**
+   Containerized the React frontend, Spring Boot backend, and isolated MySQL database using Docker Compose, with nginx serving the frontend and proxying API requests.
+8. **Session Authentication & CSRF Protection**
+   Implemented session-based authentication using Spring Security, with BCrypt password hashing and CSRF protection for state-changing requests.
 
 ------
 
