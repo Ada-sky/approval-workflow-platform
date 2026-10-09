@@ -1,0 +1,7 @@
+services:
+  backend:
+    image: hpoa-backend:sha-${GITHUB_SHA:?CI commit required}
+    pull_policy: never
+  initialize:
+    image: hpoa-backend:sha-${GITHUB_SHA:?CI commit required}
+    pull_policy: never
