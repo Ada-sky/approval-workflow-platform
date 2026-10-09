@@ -195,6 +195,92 @@ MySQL data is persisted in a Docker volume. Database initialization is required 
 
 ------
 
+## Run Prebuilt Images from GHCR
+
+This separate deployment needs Docker Engine/Desktop with Linux containers and a current Docker Compose v2. It does not require Java, Node, Maven or a local MySQL installation. Use **only** `compose.ghcr.yaml` for these commands; do not combine it with `compose.yaml` or override its project name. It uses project `hpoa-ghcr`, network `hpoa-ghcr_application`, volume `hpoa-ghcr_mysql-data`, and localhost port **8083**, independently of the existing `hpoa-docker` deployment.
+
+### Select a version and configure credentials
+
+From the repository root:
+
+```sh
+cp .env.ghcr.example .env.ghcr
+```
+
+Edit the ignored `.env.ghcr` privately. Set `HPOA_IMAGE_SHA` to the full 40-character commit SHA from a **successful CI/GHCR publishing run**, without the `sha-` prefix. Both backend and frontend use that same published version. Set separate, strong `DOCKER_DB_PASSWORD` and `DOCKER_ROOT_PASSWORD` values; do not reuse local database credentials. For optional demo accounts, also set `HPOA_DEMO_PASSWORD` to at least 16 characters and at most 72 UTF-8 bytes. Do not commit this file or share resolved Compose configuration containing its secrets.
+
+The version-specific tags are:
+
+- `ghcr.io/ada-sky/approval-workflow-platform-backend:sha-<full-commit-sha>`
+- `ghcr.io/ada-sky/approval-workflow-platform-frontend:sha-<full-commit-sha>`
+
+GHCR packages must be public for anonymous pulls. SHA tags select a specific release but can technically be overwritten; record the pulled image digests for stronger reproducibility. Current CI builds target Linux AMD64; native ARM images are not yet provided.
+
+### Fresh database startup
+
+Pull the application, initialization and optional seed images, then start MySQL:
+
+```sh
+docker compose --env-file .env.ghcr -f compose.ghcr.yaml --profile setup --profile demo pull
+docker compose --env-file .env.ghcr -f compose.ghcr.yaml up -d --wait db
+```
+
+Only for a **new empty deployment volume**, initialize and start the application. The `&&` ensures normal startup is attempted only after initialization exits successfully (PowerShell users should run the second command only if the first exits with code 0):
+
+```sh
+docker compose --env-file .env.ghcr -f compose.ghcr.yaml --profile setup run --rm --no-deps initialize && docker compose --env-file .env.ghcr -f compose.ghcr.yaml up -d --wait backend frontend
+```
+
+Initialization applies the existing Flyway application migrations and creates Activiti's own tables with the packaged MySQL compatibility override. It deploys `hr_employee_holiday`. Normal startup does not initialize/upgrade Activiti or automatically deploy BPMN. Never run fresh initialization on an existing deployment as an update shortcut.
+
+### Optional demo accounts
+
+Before signing in or editing any demo/reference records, explicitly seed the freshly initialized database:
+
+```sh
+docker compose --env-file .env.ghcr -f compose.ghcr.yaml --profile demo run --rm --no-deps demo-seed
+```
+
+Use the configured demo password with `employee.a@example.test`, `employee.b@example.test`, `manager@example.test`, `general.manager@example.test`, `hr@example.test`, or `admin@example.test`. The seed also supplies required workflow reference data. Without it, the fresh schema has no initial accounts/reference data and is not ready for interactive demo login. Seeding is never automatic; do not rerun it after changing fixture records or use it to reset passwords.
+
+Open **http://127.0.0.1:8083**. The prebuilt nginx frontend serves React routes and proxies API/login requests to `backend:8080`, preserving same-origin sessions and CSRF. MySQL and the backend publish no host ports and mount no host database directories.
+
+### Restart, update and shutdown
+
+Restart an initialized deployment without repeating initialization or seeding:
+
+```sh
+docker compose --env-file .env.ghcr -f compose.ghcr.yaml up -d --wait db backend frontend
+```
+
+Before updating, back up the deployment database and review migration/workflow release notes. Change only `HPOA_IMAGE_SHA` to another successfully published commit, retain the existing database passwords, then:
+
+```sh
+docker compose --env-file .env.ghcr -f compose.ghcr.yaml pull backend frontend
+docker compose --env-file .env.ghcr -f compose.ghcr.yaml up -d --no-deps --wait backend frontend
+```
+
+This updates only application containers and preserves the MySQL container/volume. Backend startup validates/applies application migrations; an image rollback does not reverse database changes. Activiti schema/BPMN changes require a separately reviewed upgrade procedure, not automatic initialization. Changing `.env.ghcr` passwords does not rotate credentials stored in an existing database volume.
+
+Normal shutdown preserves data:
+
+```sh
+docker compose --env-file .env.ghcr -f compose.ghcr.yaml down
+```
+
+**Do not use `docker compose down -v` for normal shutdown: it deletes the deployment's database volume and stored data.**
+
+### Troubleshooting
+
+```sh
+docker compose --env-file .env.ghcr -f compose.ghcr.yaml ps --all
+docker compose --env-file .env.ghcr -f compose.ghcr.yaml logs --tail 100 db backend frontend
+```
+
+For a missing image or denied pull, check that both SHA tags were published and package visibility is public. Check Docker Hub connectivity/rate limits if MySQL cannot be pulled. For initialization failure, preserve its terminal output and stop before starting the backend; do not delete the volume or repeatedly initialize it to hide a failure. For unhealthy startup, inspect logs, retained credentials and migration compatibility. If port 8083 is occupied, free it safely before launch. Review logs for sensitive information before sharing them. This localhost HTTP setup is for evaluation; public hosting requires HTTPS, secure cookies and proper secret management.
+
+---
+
 ## Local Development
 
 **Prerequisites:** Java 21, Maven, Node.js 22.12+, npm, and an initialized MySQL database with the BPMN process definition.
