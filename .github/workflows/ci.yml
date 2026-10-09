@@ -1,0 +1,126 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  backend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - name: Database-free tests and Spring Boot package
+        run: mvn -B -ntp -f backend/pom.xml verify
+
+  frontend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22.14.0"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm test
+      - run: npm run build
+
+  images:
+    needs: [backend, frontend]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        component: [backend, frontend]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Build existing Dockerfile and export exact image
+        env:
+          COMPONENT: ${{ matrix.component }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="hpoa-${COMPONENT}:sha-${GITHUB_SHA}"
+          context=.
+          if [[ "$COMPONENT" == frontend ]]; then context=frontend; fi
+          docker build --file "$COMPONENT/Dockerfile" --tag "$tag" "$context"
+          mkdir image-artifact
+          docker image inspect --format '{{.Id}}' "$tag" > image-artifact/image-id.txt
+          docker save "$tag" | gzip > image-artifact/image.tar.gz
+          (cd image-artifact && sha256sum image.tar.gz image-id.txt > SHA256SUMS)
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: image-${{ matrix.component }}-${{ github.sha }}
+          path: image-artifact/
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
+
+  publish:
+    # Phase 2 will also require the isolated smoke job here before any publishing.
+    needs: [backend, frontend, images]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: image-*-${{ github.sha }}
+          path: images
+      - name: Validate and load both CI-built images
+        shell: bash
+        run: |
+          set -euo pipefail
+          for component in backend frontend; do
+            directory="images/image-${component}-${GITHUB_SHA}"
+            (cd "$directory" && sha256sum --check SHA256SUMS)
+            gzip -dc "$directory/image.tar.gz" | docker load
+            expected=$(cat "$directory/image-id.txt")
+            actual=$(docker image inspect --format '{{.Id}}' "hpoa-${component}:sha-${GITHUB_SHA}")
+            [[ "$actual" == "$expected" ]]
+          done
+      - name: Publish exact images to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          repository="${GITHUB_REPOSITORY,,}"
+          for component in backend frontend; do
+            target="ghcr.io/${repository}-${component}:sha-${GITHUB_SHA}"
+            docker tag "hpoa-${component}:sha-${GITHUB_SHA}" "$target"
+            docker push "$target"
+          done

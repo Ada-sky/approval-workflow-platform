@@ -1,5 +1,7 @@
 # Approval Workflow Platform
 
+[![CI](https://github.com/Ada-sky/approval-workflow-platform/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Ada-sky/approval-workflow-platform/actions/workflows/ci.yml)
+
 A full-stack employee leave approval platform built with React, Spring Boot, MySQL, and Activiti BPMN. Employees can submit and track leave requests, while managers and HR review and process them through role-based, multi-stage approval workflows. Administrators manage employee accounts, organizational data, and access permissions.
 
 ---
@@ -245,3 +247,16 @@ npm run format:check
 The application was also verified in an isolated Docker environment, including database initialization, session authentication, CSRF protection, approval workflows, and data persistence.e.
 
 
+
+## Continuous Integration and Container Publishing
+
+GitHub Actions runs on pushes to `main` and pull requests targeting `main`. It runs the database-free Maven tests and Spring Boot packaging, frontend formatting checks and Vitest tests, and the Vite production build. Both existing Dockerfiles must also build successfully.
+
+After all checks pass on a push to `main`, the exact CI-built images are published to GitHub Container Registry without rebuilding them:
+
+- `ghcr.io/ada-sky/approval-workflow-platform-backend:sha-<full-commit-sha>`
+- `ghcr.io/ada-sky/approval-workflow-platform-frontend:sha-<full-commit-sha>`
+
+Pull requests never publish images. Publishing uses GitHub's built-in token with package-write permission limited to the publishing job; no registry password is stored in the repository. GHCR package visibility may need to be set to public after the first successful publication.
+
+Phase 1 checks do not start containers or connect to MySQL. A disposable GitHub-runner-only database smoke test is planned for Phase 2 and is not yet implemented. Image publication does not deploy or update a running application.
