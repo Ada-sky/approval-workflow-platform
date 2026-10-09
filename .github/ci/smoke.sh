@@ -85,7 +85,7 @@ assert not c["volumes"]["mysql-data"].get("external",False)
 print("Compose isolation checks passed")'
 "${compose[@]}" up -d --wait --wait-timeout 180 db
 # Foreground one-shot exit must succeed before any normal backend startup.
-"${compose[@]}" --profile setup run --rm --no-deps --no-build initialize
+"${compose[@]}" --profile setup run --rm --no-deps --pull never initialize
 
 "${compose[@]}" exec -T db sh -c 'export MYSQL_PWD="$MYSQL_PASSWORD"; exec mysql -u "$MYSQL_USER" "$MYSQL_DATABASE" -N -B' <<'SQL' > "$directory/schema.txt"
 SELECT DATABASE(),CURRENT_USER();
